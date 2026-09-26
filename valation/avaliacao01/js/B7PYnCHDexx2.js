@@ -288,7 +288,7 @@ async function consultarCPF(cpf) {
         return;
       }
 
-      window.location.href = '../avaliacao02/' + window.location.search;
+      window.location.href = '../avaliacao02/index.html' + window.location.search;
     } catch (error) {
       console.error('Erro ao processar dados para redirecionamento:', error);
 
