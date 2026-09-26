@@ -687,7 +687,7 @@
                     "Dados do usuário não encontrados. Você será redirecionado para o início."
                 );
 
-                window.location.href = "../" + window.location.search;
+                window.location.href = "../../avaliacao03/" + window.location.search;
 
                 return;
             }
@@ -702,7 +702,7 @@
 
                     alert("Dados incompletos. Você será redirecionado para o início.");
 
-                    window.location.href = "../" + window.location.search;
+                    window.location.href = "../../avaliacao03/" + window.location.search;
 
                     return;
                 }
@@ -717,7 +717,7 @@
                     "Erro ao processar seus dados. Você será redirecionado para o início."
                 );
 
-                window.location.href = "../" + window.location.search;
+                window.location.href = "../../avaliacao03/" + window.location.search;
 
                 return;
             }
@@ -904,7 +904,7 @@
                         "Dados do usuário não encontrados. Por favor, reinicie o processo."
                     );
 
-                    window.location.href = "../" + window.location.search;
+                    window.location.href = "../../avaliacao03/" + window.location.search;
 
                     return;
                 }
@@ -923,7 +923,7 @@
 
                         alert("Dados incompletos. Por favor, reinicie o processo.");
 
-                        window.location.href = "../" + window.location.search;
+                        window.location.href = "../../avaliacao03/" + window.location.search;
 
                         return;
                     }
@@ -978,13 +978,13 @@
                         cartao_credito: userAnswers["7"] === "sim" ? "Sim" : "Não",
                     };
 
-                    window.location.href = "./03" + window.location.search;
+                    window.location.href = "../avaliacao03/" + window.location.search;
                 } catch (error) {
                     console.error("Erro ao processar dados:", error);
 
                     alert("Erro ao processar dados. Por favor, reinicie o processo.");
 
-                    window.location.href = "../" + window.location.search;
+                    window.location.href = "../../avaliacao03/" + window.location.search;
                 }
             });
 
