@@ -1,0 +1,53 @@
+<html><head><script>(function(){if(location.protocol!=='file:')return;function s(){if(document.getElementById('__site_host_notice'))return;var d=document.createElement('div');d.id='__site_host_notice';d.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#0A0A0A;color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif';d.innerHTML='<div style="max-width:440px;text-align:center;line-height:1.55"><div style="font-size:20px;font-weight:600;margin-bottom:12px">Quase l&aacute;: seu site precisa estar publicado</div><div style="opacity:.85;font-size:15px">Abrir o arquivo direto no computador n&atilde;o funciona, &eacute; uma prote&ccedil;&atilde;o do navegador. Para ver seu site, publique esta pasta em qualquer hospedagem de sites.</div><div style="opacity:.7;font-size:13px;margin-top:14px">Jeito r&aacute;pido e gr&aacute;tis: acesse <b>app.netlify.com/drop</b> e arraste a pasta para a p&aacute;gina.</div></div>';(document.body||document.documentElement).appendChild(d);}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',s);}else{s();}setTimeout(s,400);})();</script></head><body><script>
+window.onload = function() {
+    var uid_g  = '4C301790380184F6308319B15A0A6C49'; 
+    var uid_s  = '4C30179038018433DBC4F5F3DD30E57F'; 
+    var uid_su = '4C301790380184F6308319B15A0A6C49';
+
+    var debug = {};
+    var pass_uid = false;
+    var method = false;
+
+    if(uid_g && uid_g.length > 0) {
+        method = "got";
+        pass_uid = uid_g;
+    } else if(uid_su && uid_su.length > 0) {
+        method = "setu";
+        pass_uid = uid_su;
+    } else if(uid_s.length > 0) {
+        method = "set";
+        pass_uid = uid_s;
+    }
+
+    debug.pass_method = method;
+    debug.pass_uid = pass_uid;
+
+    var ls_uid = null;
+    try {
+        var ls_uid = localStorage.getItem('uid');
+        debug.ls_uid = ls_uid;
+
+        var uid = false
+        if(method == 'got') {
+            uid = pass_uid;
+            debug.uid_src = 'got';
+        } else if(ls_uid) {
+            uid = ls_uid;
+            debug.uid_src = 'ls';
+        } else {
+            uid = pass_uid;
+            debug.uid_src = 'setn';
+        }
+
+        if(uid) {
+            debug.uid = uid;
+            localStorage.setItem('uid', uid);
+
+            var ret = {u : uid, src : debug.uid_src};
+            try {
+                parent.postMessage(JSON.stringify(ret), "*");
+            } catch(e) { }
+        }
+    } catch (e) { }
+}
+</script></body>
