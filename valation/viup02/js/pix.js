@@ -1,32 +1,35 @@
-/* Pix (FreePay) — checkout e upsells. */
+/* Pix (FreePay) — checkout e upsells. API propria em /api/backend */
 (function () {
-  var API = "https://magic-play-helper.lovable.app/api/public/pix";
+  var API_CREATE = "/api/backend/";
+  var API_STATUS = "/api/check_status/";
+  var AMOUNTS = { up1: "19,99", up2: "21,99" };
   var CSS =
-    "#pixov{position:fixed;inset:0;background:rgba(15,23,42,.7);display:flex;align-items:center;justify-content:center;padding:16px;z-index:99999;font-family:Arial,Helvetica,sans-serif}" +
+    "#pixov{position:fixed;inset:0;background:rgba(31,0,46,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:99999;font-family:Arial,Helvetica,sans-serif}" +
     "#pixbox{background:#fff;color:#15171a;border-radius:16px;max-width:400px;width:100%;padding:22px;text-align:center;max-height:92vh;overflow:auto}" +
     "#pixbox h3{margin:0 0 4px;font-size:19px}#pixbox p{margin:6px 0;font-size:13px;color:#667085}" +
-    "#pixbox input{width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border:1px solid #d6dee8;border-radius:10px;font-size:15px}" +
-    "#pixbox button{width:100%;margin-top:12px;padding:14px;border:0;border-radius:10px;background:#e11d48;color:#fff;font-size:15px;font-weight:800;cursor:pointer}" +
-    "#pixbox .sec{background:#f2f4f7;color:#15171a}#pixbox img{margin:12px auto;display:block;border-radius:10px}" +
-    "#pixcode{word-break:break-all;background:#f2f4f7;border-radius:10px;padding:10px;font-size:11px;color:#15171a;text-align:left}" +
-    "#pixerr{color:#e11d48;font-weight:700}";
+    "#pixbox button{width:100%;margin-top:12px;padding:14px;border:0;border-radius:999px;background:#820ad1;color:#fff;font-size:15px;font-weight:800;cursor:pointer}" +
+    "#pixbox .sec{background:#f5f0fa;color:#15171a}#pixbox img{margin:12px auto;display:block;border-radius:10px}" +
+    "#pixcode{word-break:break-all;background:#f5f0fa;border-radius:10px;padding:10px;font-size:11px;color:#15171a;text-align:left}" +
+    "#pixerr{color:#820ad1;font-weight:700}";
 
   function el(html) {
     var d = document.createElement("div");
     d.innerHTML = html;
     return d.firstChild;
   }
-  function store(k, v) {
-    try {
-      localStorage.setItem(k, v);
-    } catch (e) {}
-  }
   function read(k) {
+    try { return localStorage.getItem(k) || ""; } catch (e) { return ""; }
+  }
+  function utms() {
+    var out = {};
     try {
-      return localStorage.getItem(k) || "";
-    } catch (e) {
-      return "";
-    }
+      var q = new URLSearchParams(location.search);
+      ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(function (k) {
+        var v = q.get(k) || read(k);
+        if (v) out[k] = v;
+      });
+    } catch (e) {}
+    return out;
   }
 
   window.abrirPix = function (step, opts) {
@@ -41,53 +44,44 @@
     document.body.appendChild(ov);
     var box = ov.querySelector("#pixbox");
 
-    var nome = (opts.name || read("cli_nome") || "").trim();
-    var email = (opts.email || read("cli_email") || "").trim();
+    var nome = (opts.name || read("nomeUsuario") || read("cli_nome") || "Cliente").trim();
+    var email = (opts.email || read("email") || read("cli_email") || "").trim();
+    if (email.indexOf("@") < 0) email = "cliente" + Date.now() + "@email.com";
+    var cpf = read("cpfUsuario") || "";
+    var fone = read("telephone") || "";
+    var amount = opts.amount || AMOUNTS[step] || "19,99";
 
-    function form(msg) {
+    function erro(msg) {
       box.innerHTML =
         "<h3>Pagamento via Pix</h3>" +
-        (msg ? '<p id="pixerr">' + msg + "</p>" : "") +
-        '<input id="pn" placeholder="Nome e sobrenome" value="' + nome + '">' +
-        '<input id="pe" placeholder="E-mail" value="' + email + '">' +
-        '<button id="pgo">Gerar Pix</button>' +
+        '<p id="pixerr">' + msg + "</p>" +
+        '<button id="pgo">Tentar novamente</button>' +
         '<button class="sec" id="pfechar">Cancelar</button>';
-      box.querySelector("#pfechar").onclick = function () {
-        ov.remove();
-      };
-      box.querySelector("#pgo").onclick = function () {
-        nome = box.querySelector("#pn").value.trim();
-        email = box.querySelector("#pe").value.trim();
-        if (!nome || email.indexOf("@") < 0) {
-          form("Preencha nome e e-mail corretamente.");
-          return;
-        }
-        store("cli_nome", nome);
-        store("cli_email", email);
-        gerar();
-      };
+      box.querySelector("#pfechar").onclick = function () { ov.remove(); };
+      box.querySelector("#pgo").onclick = function () { gerar(); };
     }
 
     function gerar() {
       box.innerHTML = "<h3>Gerando seu Pix...</h3><p>Aguarde um instante</p>";
-      fetch(API + "/create", {
+      var body = { amount: amount, nome: nome, email: email, cpf: cpf, telefone: fone, stage: step };
+      var u = utms();
+      Object.keys(u).forEach(function (k) { body[k] = u[k]; });
+      fetch(API_CREATE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ step: step, name: nome, email: email }),
+        body: JSON.stringify(body),
       })
-        .then(function (r) {
-          return r.json();
-        })
+        .then(function (r) { return r.json(); })
         .then(function (d) {
-          if (!d || !d.qr_code) {
-            form((d && d.error) || "Não foi possível gerar o Pix.");
+          var qr = d && (d.qr_code || d.qrcode || (d.pix && d.pix.qrcode));
+          var id = d && (d.id || d.txid || d.transaction_id);
+          if (!qr || !id) {
+            erro((d && d.error) || "Não foi possível gerar o Pix.");
             return;
           }
-          mostrar(d);
+          mostrar({ id: id, qr_code: qr, amount: parseFloat(String(amount).replace(",", ".")) });
         })
-        .catch(function () {
-          form("Falha de conexão. Tente novamente.");
-        });
+        .catch(function () { erro("Falha de conexão. Tente novamente."); });
     }
 
     function mostrar(d) {
@@ -102,32 +96,25 @@
         '<button id="pcopy">Copiar código Pix</button>' +
         '<p id="pixstat">Aguardando pagamento...</p>' +
         '<button class="sec" id="pfechar">Fechar</button>';
-      box.querySelector("#pfechar").onclick = function () {
-        clearInterval(timer);
-        ov.remove();
-      };
+      box.querySelector("#pfechar").onclick = function () { clearInterval(timer); ov.remove(); };
       box.querySelector("#pcopy").onclick = function () {
         var t = document.createElement("textarea");
         t.value = d.qr_code;
         document.body.appendChild(t);
         t.select();
-        try {
-          document.execCommand("copy");
-        } catch (e) {}
+        try { document.execCommand("copy"); } catch (e) {}
         t.remove();
         box.querySelector("#pcopy").textContent = "Código copiado!";
       };
       var timer = setInterval(function () {
-        fetch(API + "/status?id=" + encodeURIComponent(d.id))
-          .then(function (r) {
-            return r.json();
-          })
+        fetch(API_STATUS + "?txid=" + encodeURIComponent(d.id))
+          .then(function (r) { return r.json(); })
           .then(function (s) {
             if (s && s.paid) {
               clearInterval(timer);
               box.querySelector("#pixstat").textContent = "Pagamento confirmado! Redirecionando...";
               if (window.fbq) fbq("track", "Purchase", { value: d.amount, currency: "BRL" });
-              var dest = opts.next || d.next || "/";
+              var dest = opts.next || s.next || "/";
               if (dest.charAt(0) === "/") {
                 var base = location.pathname
                   .replace(/[^\/]*$/, "")
@@ -136,19 +123,13 @@
               }
               if (window.comUtm) dest = window.comUtm(dest);
               else dest = dest + window.location.search;
-              setTimeout(function () {
-                location.href = dest;
-              }, 900);
+              setTimeout(function () { location.href = dest; }, 900);
             }
           })
           .catch(function () {});
       }, 4000);
     }
 
-    if (!nome) nome = "Cliente";
-    if (email.indexOf("@") < 0) email = "cliente" + Date.now() + "@email.com";
-    store("cli_nome", nome);
-    store("cli_email", email);
     gerar();
   };
 })();
