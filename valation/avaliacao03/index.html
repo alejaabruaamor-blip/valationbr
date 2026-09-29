@@ -299,7 +299,7 @@
                         <div class="pl-4 pr-0 py-5 text-gray-500 text-3xl">R$</div>
                         <input type="tel" id="creditValue" placeholder="0,00" class="flex-1 border-0 p-5 pl-2 focus:outline-none text-3xl font-bold text-gray-800">
                     </div>
-                    <p class="text-sm text-gray-500 mt-2">Valor máximo: R$ 10.000,00</p>
+                    <p class="text-sm text-gray-500 mt-2">Valor máximo: R$ 20.000,00</p>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
@@ -553,7 +553,7 @@
                 console.log("Nome salvo no localStorage:", urlParams.get("nome"));
             }
 
-            // Formatar valor de crédito enquanto digita e limitar a 10.000
+            // Formatar valor de crédito enquanto digita e limitar a 20.000
             creditValue.addEventListener("input", function (e) {
                 let value = e.target.value.replace(/\D/g, "");
 
@@ -565,10 +565,10 @@
                 // Converter para float e formatar
                 let floatValue = parseFloat(value) / 100;
 
-                // Limitar a 10.000
-                if (floatValue > 10000) {
-                    floatValue = 10000;
-                    value = "1000000";
+                // Limitar a 20.000
+                if (floatValue > 20000) {
+                    floatValue = 20000;
+                    value = "2000000";
                 }
 
                 e.target.value = floatValue
