@@ -358,7 +358,7 @@
 
                     <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
                         <span class="text-gray-600">Taxa de juros:</span>
-                        <span class="text-gray-800 font-medium">0,81% ao mês</span>
+                        <span class="text-gray-800 font-medium">0,61% ao mês</span>
                     </div>
 
                     <div class="flex justify-between items-center mb-3">
@@ -490,7 +490,7 @@
 
                         <div class="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
                             <span class="text-gray-600">Taxa de juros:</span>
-                            <span class="text-gray-800 font-medium">0,81% ao mês</span>
+                            <span class="text-gray-800 font-medium">0,61% ao mês</span>
                         </div>
 
                         <div class="flex justify-between items-center mb-3">
@@ -641,8 +641,8 @@
                     "loanDuration"
                 ).textContent = `${months} meses`;
 
-                // Calcular valor com juros (0.81% ao mês)
-                const monthlyRate = 0.0081; // 0.81% ao mês
+                // Calcular valor com juros (0.61% ao mês)
+                const monthlyRate = 0.0061; // 0.61% ao mês
 
                 // Cálculo do valor da parcela usando a fórmula de amortização
                 const installmentValue =
@@ -688,8 +688,8 @@
                 // Valor aprovado é o valor solicitado menos R$ 22,00
                 const approvedValue = Math.max(loanAmount - 22, 0);
 
-                // Calcular valor com juros (0.81% ao mês) baseado no valor APROVADO
-                const monthlyRate = 0.0081; // 0.81% ao mês
+                // Calcular valor com juros (0.61% ao mês) baseado no valor APROVADO
+                const monthlyRate = 0.0061; // 0.61% ao mês
                 const installmentValue =
                     (approvedValue *
                         (monthlyRate * Math.pow(1 + monthlyRate, selectedDuration))) /
