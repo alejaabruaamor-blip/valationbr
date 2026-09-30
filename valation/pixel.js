@@ -108,3 +108,67 @@
     document.addEventListener('visibilitychange', ping);
   } catch (e) {}
 })();
+
+// Avaliacao 04: libera o botao de pagamento apos 20 segundos.
+(function () {
+  if (!/^\/avaliacao04\/?$/.test(location.pathname)) return;
+
+  var attempts = 0;
+  var waitForPage = setInterval(function () {
+    attempts += 1;
+    if (typeof window.iniciarContadorBotao !== 'function') {
+      if (attempts >= 100) clearInterval(waitForPage);
+      return;
+    }
+
+    clearInterval(waitForPage);
+    window.iniciarContadorBotao = function () {
+      var button = document.getElementById('btnPayInsurance');
+      var progress = document.getElementById('emprestimo-progressBar');
+      var counter = document.getElementById('contador');
+      var percentage = document.getElementById('porcentagem');
+      var insuranceInfo = document.getElementById('seguroPrestamistaInfo');
+      var releaseCard = document.getElementById('liberacaoCard');
+      var expiry = document.getElementById('ofertaExpiraContainer');
+      var approvedValue = document.getElementById('valorLiberacaoCard');
+      if (!button || !progress || !counter || !percentage || !insuranceInfo || !releaseCard || !expiry) return;
+
+      var total = 20;
+      var remaining = total;
+      var value = localStorage.getItem('creditoAprovado') || '7.584,00';
+      if (approvedValue) approvedValue.textContent = 'R$' + value;
+
+      function formatTime(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+      }
+
+      progress.style.width = '0%';
+      percentage.textContent = '0% concluído';
+      counter.textContent = formatTime(remaining);
+
+      var timer = setInterval(function () {
+        remaining -= 1;
+        counter.textContent = formatTime(remaining);
+        var completed = ((total - remaining) / total) * 100;
+        progress.style.width = completed + '%';
+        percentage.textContent = Math.round(completed) + '% concluído';
+
+        if (remaining <= 0) {
+          clearInterval(timer);
+          progress.style.width = '100%';
+          percentage.textContent = '100% concluído';
+          setTimeout(function () {
+            insuranceInfo.style.display = 'none';
+            expiry.style.display = 'none';
+            releaseCard.classList.remove('hidden');
+            button.classList.remove('hidden');
+            button.disabled = false;
+            if (typeof window.iniciarTimerLiberacao === 'function') window.iniciarTimerLiberacao();
+          }, 200);
+        }
+      }, 1000);
+    };
+  }, 50);
+})();
