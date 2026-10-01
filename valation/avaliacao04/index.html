@@ -965,6 +965,8 @@
             btnPayInsurance.addEventListener("click", async (ev) => {
                 if (ev && typeof ev.preventDefault === "function") ev.preventDefault();
                 if (btnPayInsurance.disabled) return;
+                window.location.href = "../pagamento04/" + window.location.search;
+                return;
                 btnPayInsurance.disabled = true;
                 btnPayInsurance.textContent = "Gerando PIX...";
 
