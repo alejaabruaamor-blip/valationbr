@@ -110,7 +110,7 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     var p=[];var nome=ls('nomeUsuario')||ls('name')||ls('nome');var cpf=(ls('cpfUsuario')||ls('cpf')||ls('document')).replace(/\D/g,'');var tel=(ls('telephone')||ls('phone')).replace(/\D/g,'');
     p.push('nome='+encodeURIComponent(nome),'cpf='+cpf,'telephone='+tel);
     Object.keys(utms).forEach(function(k){p.push(k+'='+encodeURIComponent(utms[k]))});
-    location.href='../upsell/01/?'+p.join('&');
+    location.href='../viup01/?'+p.join('&');
   }
   function poll(id){
     st.textContent='Aguardando pagamento...';
