@@ -75,6 +75,68 @@ async function readBody(req) {
   }
 }
 
+async function activeGateway() {
+  try {
+    const r = await fetch('https://ignite-joy-quiz.lovable.app/api/public/gateway', { cache: 'no-store' });
+    const j = await r.json();
+    return j && j.gateway === 'bravopay' ? 'bravopay' : 'freepay';
+  } catch (e) {
+    return 'freepay';
+  }
+}
+
+async function bravoCreate(req, res) {
+  const key = process.env.BRAVOPAY_API_KEY;
+  if (!key) return res.status(500).json({ error: 'Credenciais da BravoPay nao configuradas' });
+  try {
+    const body = await readBody(req);
+    let amount = parseCents(body.amount);
+    if (!amount || amount < 500) amount = 500;
+    const nome = (body.nome || '').trim() || 'Cliente';
+    const email = (body.email || '').trim() || undefined;
+    const telefone = onlyDigits(body.telefone);
+    const cpf = onlyDigits(body.cpf);
+    const utms = utmsFrom(req, body);
+    const stage = stageFrom(req, body, amount);
+    const customer = { name: nome };
+    if (email) customer.email = email;
+    if (cpf && cpf !== '00000000000') customer.cpf = cpf;
+    if (telefone) customer.phone = telefone;
+    const payload = {
+      amount_cents: amount,
+      method: 'pix',
+      customer: customer,
+      description: 'Ebook Design',
+      metadata: { stage: stage },
+      utm: {
+        source: utms.utm_source, medium: utms.utm_medium, campaign: utms.utm_campaign,
+        content: utms.utm_content, term: utms.utm_term,
+      },
+    };
+    if (process.env.BRAVOPAY_PRODUCT_ID) payload.product_id = process.env.BRAVOPAY_PRODUCT_ID;
+    const r = await fetch('https://bravopay.club/api/v1/transactions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer ' + key },
+      body: JSON.stringify(payload),
+    });
+    const j = await r.json().catch(function () { return null; });
+    const code = j && j.pix ? j.pix.copy_paste : null;
+    if (!r.ok || !code || !j.id) {
+      return res.status(400).json({ error: (j && j.error && j.error.message) || 'Nao foi possivel gerar o PIX', raw: j });
+    }
+    await sendToPanel(Object.assign({
+      txid: j.id, stage: stage, amount_cents: amount, status: 'pending', product_name: 'Ebook Design',
+      customer_name: nome, customer_email: email || '', customer_phone: telefone,
+    }, utms));
+    return res.status(200).json({
+      id: j.id, status: j.status || 'PENDING', amount: amount,
+      pix: { qrcode: code, expiration_date: j.pix.expires_at || null },
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Erro ao gerar PIX', detail: String(err && err.message) });
+  }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'content-type');
@@ -83,6 +145,9 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Metodo nao permitido' });
+
+  const gateway = await activeGateway();
+  if (gateway === 'bravopay') return bravoCreate(req, res);
 
   if (!process.env.FREEPAY_PUBLIC_KEY || !process.env.FREEPAY_SECRET_KEY) {
     return res.status(500).json({ error: 'Credenciais da FreePay nao configuradas' });
