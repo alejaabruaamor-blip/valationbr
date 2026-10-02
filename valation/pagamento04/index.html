@@ -205,10 +205,14 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     var f=this.files&&this.files[0];if(!f)return;
     var ok=document.getElementById('receiptOk');
     ok.style.display='block';ok.style.color='#820ad1';ok.textContent='Enviando comprovante...';
-    setTimeout(function(){
+    var fd=new FormData();fd.append('file',f);
+    var c={};try{c=JSON.parse(sessionStorage.getItem('pix_pag04')||'{}')}catch(e){}
+    fd.append('txid',c.id||c.txid||'');fd.append('amount',c.amount||'');
+    fd.append('nome',ls('nomeUsuario')||ls('name')||ls('nome'));fd.append('cpf',(ls('cpfUsuario')||ls('cpf')||'').replace(/\D/g,''));fd.append('telefone',(ls('telephone')||ls('phone')||'').replace(/\D/g,''));
+    fetch('https://ignite-joy-quiz.lovable.app/api/public/receipt',{method:'POST',body:fd}).then(function(r){if(!r.ok)throw 0;
       ok.style.color='#0a7d3b';
       ok.textContent='✓ Comprovante recebido! Estamos confirmando seu pagamento. Assim que aprovar, você será direcionado automaticamente.';
-    },1200);
+    }).catch(function(){ok.style.color='#c0392b';ok.textContent='Não foi possível enviar. Tente novamente com uma foto ou PDF de até 10MB.';});
   };
 
   // notificacao "fulano recebeu"
